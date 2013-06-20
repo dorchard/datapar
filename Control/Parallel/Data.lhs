@@ -11,13 +11,17 @@
 
 > class (Map t, Reduce t, Filter t,
 >        Gather t, GatherMask t,
->        Scatter t, ScatterOver t) => DataPar t where
->     
+>        Scatter t, ScatterOver t, Promote t) => DataPar t where
+
+> class Promote t where
+>     promote :: a -> t a
+>     default promote :: Monad t => a -> t a
+>     promote = return 
 
 > class Map t where
 >     map :: (a -> b) -> t a -> t b
 >     default map :: Functor t => (a -> b) -> t a -> t b
->     map = fmap 
+>     map = fmap
 
 > class Reduce t where
 >     reduce :: Monoid x => t (x, a) -> (x, t a) 
