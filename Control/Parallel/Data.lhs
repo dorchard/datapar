@@ -9,6 +9,11 @@
 > import Control.Comonad
 > import Data.Distributive
 
+Cartesian-closed helpers
+
+> pair :: (a -> b) -> (a -> c) -> (a -> (b, c))
+> pair f g = \x -> (f x, g x)
+
 > class (Map t, Promote t, Zip t, 
 >        Reduce t, Filter t,
 >        Gather t, GatherMask t,
@@ -25,7 +30,7 @@
 >     promote = return 
 
 > class Zip t where
->     zip :: t a -> t b -> t (a, b)
+>     zip :: (t a, t b) -> t (a, b)
 
 > class Reduce t where
 >     reduce :: Monoid x => t (x, a) -> (x, t a) 

@@ -11,7 +11,7 @@
 > import Data.Monoid
 > import Data.Complex
 
-> data Vector a = Vector {vectorData :: [a], cursor :: Int} deriving Show
+> data Vector a = Vector {vectorData :: [a], cursor :: Int} deriving (Eq, Show)
 
 > instance Comonad Vector where
 >     extract (Vector x n) = x !! n
@@ -31,20 +31,17 @@
 > instance Map Vector where
 
 > instance Zip Vector where
->     zip a@(Vector x n) b@(Vector y n') = if (n < n') then zip (shiftR a) b
->                                          else if (n > n') then zip a (shiftR b)
->                                          else Vector (Pre.zip x y) n
->                                             where shiftR (Vector x n) = Vector (x ++ [undefined]) (n + 1) 
-
+>     zip (a@(Vector x n), b@(Vector y n')) | n < n'  = zip (shiftR a, b)
+>                                           | n > n'  = zip (a, shiftR b)
+>                                           | n == n' = Vector (Pre.zip x y) n
+>                                           where shiftR (Vector x n) = Vector (x ++ [undefined]) (n + 1) 
 
 > instance Promote Vector where
 >     promote x = Vector (repeat x) 0
 
-
 > instance Monoid (Complex Double) where
 >     mempty = 0 :+ 0
 >     mappend = (+)
-
 
 Test data
 
@@ -60,7 +57,7 @@ Examples with various transformations applied
 >                n = fromIntegral (length . vectorData $ x)
 > 
 
-> dft' x = map (\x' -> fst . reduce . (map (\x'' -> (args (fst $ current x'') (cursor x'') (snd $ current x''), current x''))) . gather $ (zip (promote (cursor x')) x')) . gather $ x
+> dft' x = map (\x' -> fst . reduce . (map (\x'' -> (args (fst $ current x'') (cursor x'') (snd $ current x''), current x''))) . gather $ (zip (promote (cursor x'), x'))) . gather $ x
 >            where         
 >                args k i x = (x :+ 0) * exp ((-2 * pi * (fromIntegral k) * (fromIntegral i) * (0 :+ 1)) / n)
 >                n = fromIntegral (length . vectorData $ x)
@@ -72,4 +69,11 @@ Examples with various transformations applied
 >                 args k j x = (x :+ 0) * exp ((-2 * pi * (fromIntegral k) * (fromIntegral j) * (0 :+ 1)) / n)
 >                 n = fromIntegral (length . vectorData $ x)
 
+
+Point-free version
+
+> dft3 x = map (fst . reduce . (map ((args . (current `pair` cursor)) `pair` current)) . gather . zip . ((promote . cursor) `pair` id)) . gather $ x
+>            where         
+>                args ((k, x), i) = (x :+ 0) * exp ((-2 * pi * (fromIntegral k) * (fromIntegral i) * (0 :+ 1)) / n)
+>                n = fromIntegral (length . vectorData $ x)
 
