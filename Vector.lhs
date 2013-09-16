@@ -10,6 +10,13 @@
 
 > data Vector a = Vector {vectorData :: [a], cursor :: Int} deriving (Eq, Show)
 
+
+> index :: Monoid a => Vector a -> Int -> a
+> index (Vector xs _) n = if (n >= (length xs))
+>                         then mempty
+>                         else xs !! n
+
+
 > instance Comonad Vector where
 >     extract (Vector x n) = x !! n
 >     extend k (Vector x n) = Vector (Pre.map (\c -> k (Vector x c)) [0..((length x) - 1)]) n
@@ -22,6 +29,7 @@
 >                                where go [] = (mempty, [])
 >                                      go ((r, x):xs) = let (r', xs') = go xs
 >                                                       in (r `mappend` r', x : xs')
+
 > instance Functor Vector where
 >     fmap f (Vector x n) = Vector (Pre.map f x) n
 
