@@ -36,13 +36,14 @@
                                    where shiftR (Vector x n) = Vector (x ++ [undefined]) (n + 1) 
 
 > instance Promote SparseVector where
->     promote x = SparseVector (Pre.zip (repeat x) [0..]) 0
+>     promote x = SV (Pre.zip [0..] (repeat x)) 0
 
 
  spareToDense :: Monoid a => SparseVector a -> Vector a
  spareToDense (SV xs n) = 
 
-> type SparseMatrix a = Vector (SpareVector a)
+> type SparseMatrix a = Vector (SparseVector a)
 
-
->     
+> smvm :: (Num a, Monoid a) => Vector (Vector (Int, a)) -> Vector a -> Vector (Vector a)
+> smvm sm v = 
+>     map (\sv -> map (\(i, x) -> x * index v i) sv) sm
